@@ -13,10 +13,6 @@ The following algorithm is not in any way optimized to some crazy degree, but ra
 #include <vector>
 #include <map>
 
-// you should probably use a double linked list of sockets, or any other container indead
-// for this example a simple vector or sorted sockets are used, your implementation can vary
-std::vector<uWS::WebSocket<uWS::SERVER>> sockets;
-
 // one batch per room
 struct Room {
     // a Gap refers to a gap in the sharedMessage string
@@ -29,6 +25,10 @@ struct Room {
     // the sharedMessage holds the complete batch that will be sent in verbatim
     // to sockets that didn't send anything for this batch (they are listeners-only)
     std::string sharedMessage;
+
+    // you should probably use a doubly linked list of sockets, or any other container instead
+    // for this example a simple vector or sorted sockets are used, your implementation can vary
+    std::vector<uWS::WebSocket<uWS::SERVER>> sockets;
 
     // each iteration that resuls in a new pub should extend the time window of the batching
     bool gotPubsThisIteration = false;
@@ -93,6 +93,15 @@ struct Room {
         batched++;
     }
 
+    void addSubscriber(uWS::WebSocket<uWS::SERVER> ws) {
+        // keep a sorted container of sockets (you can do much better than this!)
+        sockets.push_back(ws);
+        // at least do sorted insertion and not a full sort here
+        std::sort(sockets.begin(), sockets.end(), [](const uWS::WebSocket<uWS::SERVER> &a, const uWS::WebSocket<uWS::SERVER> &b) {
+            return a < b;
+        });
+    }
+
 // let's call this the defaultRoom
 } defaultRoom;
 
@@ -129,12 +138,8 @@ int main(int argc, char *argv[])
     });
 
     hub.onConnection([](uWS::WebSocket<uWS::SERVER> ws, uWS::UpgradeInfo ui) {
-        // keep a sorted container of sockets (you can do much better than this!)
-        sockets.push_back(ws);
-        // at least do sorted insertion and not a full sort here
-		std::sort(sockets.begin(), sockets.end(), [](const uWS::WebSocket<uWS::SERVER> &a, const uWS::WebSocket<uWS::SERVER> &b) {
-		    return a < b;
-		});
+        // let's assume every connection will subscribe to the default room
+        defaultRoom.addSubscriber(ws);
 
         // do whatever you need to establish correct state of your connection
         // obviously depends on what protocol you are implementing
