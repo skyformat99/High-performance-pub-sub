@@ -1,5 +1,5 @@
 # High performance pub/sub
-When I started looking into pub/sub I noticed the same thing I had seen when looking into WebSockets in general: **nobody is doing it efficiently**. Basic and very easy-to-understand concepts like minimizing the amount of broadcasts, sends, framing, branches, copies and the like are complely ignored in most of the pub/sub implementations I have looked at.
+When I started looking into pub/sub I noticed the same thing I had seen when looking into WebSockets in general: **nobody is doing it efficiently**. Basic and very easy-to-understand concepts like minimizing the amount of broadcasts, sends, framing, branches, copies and the like are completely ignored in most of the pub/sub implementations I have looked at.
 
 This repository displays a very basic broadcasting coalescing algorithm used to minimize the amount of TCP sends performed when dealing with problems like pub/sub. The algorithm is written in C++11 and what it does in **89 milliseconds** takes an equivalent Socket.IO based pub/sub implementation **4.5 minutes**. That's a difference, of this particular problem size, of **over 3000x in performance**. This prototype has also been shown to perform more than **50x faster than Redis pub/sub** for the same problem size, where Redis finished in **5 seconds**.
 
